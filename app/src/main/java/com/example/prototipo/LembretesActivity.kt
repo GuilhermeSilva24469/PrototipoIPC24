@@ -17,6 +17,7 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 
@@ -118,6 +119,22 @@ class LembretesActivity : Activity() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            if (requestCode == 1 || requestCode == 2) {
+                val categoria = data?.getStringExtra("categoria") ?: return
+                val lembrete = data.getStringExtra("lembrete") ?: return
+                if (!lembretesMap.containsKey(categoria)) {
+                    lembretesMap[categoria] = mutableListOf()
+                }
+                lembretesMap[categoria]?.add(lembrete)
+                saveLembretes()  // Salva os lembretes atualizados no SharedPreferences
+                refreshLembretes()
+            }
+        }
+    }
+
     private fun showEditDeleteDialog(categoria: String, lembrete: String) {
         val dialogBuilder = AlertDialog.Builder(this)
         dialogBuilder.setTitle("Opções de Lembrete")
@@ -134,6 +151,7 @@ class LembretesActivity : Activity() {
         dialogBuilder.setNegativeButton("Eliminar") { dialog, _ ->
             dialog.dismiss()
             lembretesMap[categoria]?.remove(lembrete)
+            saveLembretes()  // Salva os lembretes atualizados no SharedPreferences
             refreshLembretes()
         }
         dialogBuilder.setNeutralButton("Cancelar") { dialog, _ ->
@@ -187,17 +205,28 @@ class LembretesActivity : Activity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK) {
-            if (requestCode == 1 || requestCode == 2) {
-                val categoria = data?.getStringExtra("categoria") ?: return
-                val lembrete = data.getStringExtra("lembrete") ?: return
-                lembretesMap[categoria]?.add(lembrete)
-                refreshLembretes()
+    private fun saveLembretes() {
+        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        val lembretesSet = lembretesMap.flatMap { entry ->
+            entry.value.map { lembrete ->
+                val parts = lembrete.split(" - ")
+                val titulo = parts[0]
+                val dataHora = parts[1]
+                val volume = parts[2]
+                val categoria = entry.key
+                "$titulo|$dataHora|$volume|$categoria"
             }
-        }
+        }.toSet()
+
+        editor.putStringSet("lembretes", lembretesSet)
+        editor.apply()
+
+        // Exibir mensagem de sucesso
+        Toast.makeText(this, "Alterações guardadas com sucesso", Toast.LENGTH_SHORT).show()
     }
+
 
     private fun loadLembretes(): Map<String, MutableList<String>> {
         val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
