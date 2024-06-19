@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">LembreteApp</string>
+    <string name="novo_lembrete">Novo Lembrete</string>
+    <string name="titulo">Título</string>
+    <string name="dia_e_hora">Dia e hora</string>
+    <string name="volume">Volume</string>
+    <string name="categoria">Categoria</string>
+    <string name="guardar">Guardar</string>
+    <string name="cancelar">Cancelar</string>
+    <string-array name="volume_array">
+        <item>Baixo</item>
+        <item>Médio</item>
+        <item>Alto</item>
+    </string-array>
+    <string-array name="categoria_array">
+        <item>Tarefas da semana</item>
+        <item>Tarefas do mês</item>
+        <item>Trabalho</item>
+        <item>Pessoal</item>
+        <item>Estudo</item>
+        <item>Outro</item>
+    </string-array>
+</resources>
