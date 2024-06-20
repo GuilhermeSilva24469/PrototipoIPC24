@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -209,12 +210,17 @@ class NovoLembreteActivity : Activity() {
         val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
         if (isEditing) {
             val oldLembrete = intent.getStringExtra("lembrete")
-            lembretes.remove(oldLembrete)
+            if (oldLembrete != null) {
+                lembretes.remove(oldLembrete)
+                Log.d("NovoLembreteActivity", "Lembrete antigo removido: $oldLembrete")
+            }
         }
         lembretes.add("$titulo|$dataHora|$volume|$categoria")
+        Log.d("NovoLembreteActivity", "Lembrete adicionado: $titulo|$dataHora|$volume|$categoria")
 
         editor.putStringSet("lembretes", lembretes)
-        editor.apply()
+        val commitResult = editor.commit()
+        Log.d("NovoLembreteActivity", "SharedPreferences commit result: $commitResult")
 
         scheduleNotification(titulo, "Lembrete: $titulo", dataHora)
 

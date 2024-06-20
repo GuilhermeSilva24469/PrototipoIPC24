@@ -20,13 +20,18 @@ class HorarioActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-            setPadding(32, 32, 32, 32)
+        val layout = RelativeLayout(this).apply {
+            layoutParams = RelativeLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             setBackgroundColor(ContextCompat.getColor(context, android.R.color.white))
         }
-        setContentView(layout)
+
+        val contentLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = RelativeLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT).apply {
+                addRule(RelativeLayout.ABOVE, View.generateViewId())
+            }
+            setPadding(32, 32, 32, 32)
+        }
 
         val typefaceBold = Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf")
         val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
@@ -42,7 +47,7 @@ class HorarioActivity : Activity() {
                 finish()
             }
         }
-        layout.addView(voltarTextView)
+        contentLayout.addView(voltarTextView)
 
         val titleTextView = TextView(this).apply {
             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
@@ -52,7 +57,7 @@ class HorarioActivity : Activity() {
             setTextColor(ContextCompat.getColor(context, android.R.color.black))
             typeface = typefaceBold
         }
-        layout.addView(titleTextView)
+        contentLayout.addView(titleTextView)
 
         // Mock schedule details
         val scheduleDetails = listOf(
@@ -71,9 +76,8 @@ class HorarioActivity : Activity() {
                 setPadding(16, 8, 16, 8)
                 typeface = typefaceRegular
             }
-            layout.addView(scheduleTextView)
+            contentLayout.addView(scheduleTextView)
         }
-
 
         val bottomNavigationView = BottomNavigationView(this).apply {
             id = View.generateViewId()
@@ -105,32 +109,25 @@ class HorarioActivity : Activity() {
                     startActivity(intent)
                     true
                 }
-
                 R.id.navigation_homepage -> {
                     val intent = Intent(this@HorarioActivity, MainActivity::class.java)
                     startActivity(intent)
                     true
                 }
-
                 R.id.navigation_lembretes -> {
                     val intent = Intent(this@HorarioActivity, LembretesActivity::class.java)
                     startActivity(intent)
                     true
                 }
-
                 else -> false
             }
         }
 
         Log.d("HorarioActivity", "onCreate: BottomNavigationView criado")
 
-        // Add BottomNavigationView to main layout
+        layout.addView(contentLayout)
         layout.addView(bottomNavigationView)
 
-        // Set the main layout as the content view
         setContentView(layout)
-
     }
 }
-
-

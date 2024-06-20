@@ -110,13 +110,7 @@ class LembretesActivity : Activity() {
 
         // Create BottomNavigationView programmatically
         val bottomNavigationView = BottomNavigationView(this).apply {
-            id = View.generateViewId()
-            layoutParams = RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
-            }
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             setBackgroundResource(android.R.color.white)
             itemIconTintList = ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
             itemTextColor = ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
@@ -144,13 +138,14 @@ class LembretesActivity : Activity() {
                     true
                 }
                 R.id.navigation_lembretes -> {
-                    val intent = Intent(this@LembretesActivity, LembretesActivity::class.java)
-                    startActivity(intent)
+                    // Already on this activity
                     true
                 }
                 else -> false
             }
         }
+
+        mainLayout.addView(bottomNavigationView)
     }
 
     private fun createNotificationChannel() {
@@ -273,7 +268,6 @@ class LembretesActivity : Activity() {
         // Exibir mensagem de sucesso
         Toast.makeText(this, "Alterações guardadas com sucesso", Toast.LENGTH_SHORT).show()
     }
-
 
     private fun loadLembretes(): Map<String, MutableList<String>> {
         val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
