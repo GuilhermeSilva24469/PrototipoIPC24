@@ -1,14 +1,19 @@
 package com.example.prototipo
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HorarioActivity : Activity() {
 
@@ -68,5 +73,64 @@ class HorarioActivity : Activity() {
             }
             layout.addView(scheduleTextView)
         }
+
+
+        val bottomNavigationView = BottomNavigationView(this).apply {
+            id = View.generateViewId()
+            layoutParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+            }
+            setBackgroundResource(android.R.color.white)
+            itemIconTintList =
+                ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
+            itemTextColor = ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
+            menu.add(0, R.id.navigation_horario, 0, "Horário").apply {
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_horario)
+            }
+            menu.add(0, R.id.navigation_homepage, 1, "Homepage").apply {
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_homepage)
+            }
+            menu.add(0, R.id.navigation_lembretes, 2, "Lembretes").apply {
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_lembretes)
+            }
+        }
+
+        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_horario -> {
+                    val intent = Intent(this@HorarioActivity, HorarioActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+
+                R.id.navigation_homepage -> {
+                    val intent = Intent(this@HorarioActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+
+                R.id.navigation_lembretes -> {
+                    val intent = Intent(this@HorarioActivity, LembretesActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        Log.d("HorarioActivity", "onCreate: BottomNavigationView criado")
+
+        // Add BottomNavigationView to main layout
+        layout.addView(bottomNavigationView)
+
+        // Set the main layout as the content view
+        setContentView(layout)
+
     }
 }
+
+

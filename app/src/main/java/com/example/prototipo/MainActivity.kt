@@ -64,21 +64,9 @@ class MainActivity : Activity() {
 
             Log.d("MainActivity", "onCreate: TextView de título criado")
 
-            val lembretesButton = Button(this).apply {
+            val calendarioButton = Button(this).apply {
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                text = "Lembretes"
-                setPadding(32)
-                typeface = typefaceRegular
-                setOnClickListener {
-                    val intent = Intent(this@MainActivity, LembretesActivity::class.java)
-                    startActivity(intent)
-                }
-            }
-            layout.addView(lembretesButton)
-
-            val horarioButton = Button(this).apply {
-                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                text = "Horário"
+                text = "Calendário"
                 setPadding(32)
                 typeface = typefaceRegular
                 setOnClickListener {
@@ -86,7 +74,7 @@ class MainActivity : Activity() {
                     startActivity(intent)
                 }
             }
-            layout.addView(horarioButton)
+            layout.addView(calendarioButton)
 
             Log.d("MainActivity", "onCreate: Botões criados")
 
@@ -121,7 +109,8 @@ class MainActivity : Activity() {
                         true
                     }
                     R.id.navigation_homepage -> {
-                        // Handle home icon click
+                        val intent = Intent(this@MainActivity, MainActivity::class.java)
+                        startActivity(intent)
                         true
                     }
                     R.id.navigation_lembretes -> {

@@ -10,16 +10,19 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class LembretesActivity : Activity() {
 
@@ -104,6 +107,50 @@ class LembretesActivity : Activity() {
         lembretesMap.putAll(lembretes)
 
         refreshLembretes()
+
+        // Create BottomNavigationView programmatically
+        val bottomNavigationView = BottomNavigationView(this).apply {
+            id = View.generateViewId()
+            layoutParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+            }
+            setBackgroundResource(android.R.color.white)
+            itemIconTintList = ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
+            itemTextColor = ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
+            menu.add(0, R.id.navigation_horario, 0, "Horário").apply {
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_horario)
+            }
+            menu.add(0, R.id.navigation_homepage, 1, "Homepage").apply {
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_homepage)
+            }
+            menu.add(0, R.id.navigation_lembretes, 2, "Lembretes").apply {
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_lembretes)
+            }
+        }
+
+        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_horario -> {
+                    val intent = Intent(this@LembretesActivity, HorarioActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.navigation_homepage -> {
+                    val intent = Intent(this@LembretesActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.navigation_lembretes -> {
+                    val intent = Intent(this@LembretesActivity, LembretesActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun createNotificationChannel() {
@@ -250,4 +297,5 @@ class LembretesActivity : Activity() {
 
         return lembretesMap
     }
+
 }
