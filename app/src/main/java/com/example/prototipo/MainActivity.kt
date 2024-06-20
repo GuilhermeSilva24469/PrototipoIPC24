@@ -70,7 +70,7 @@ class MainActivity : Activity() {
                 setPadding(32)
                 typeface = typefaceRegular
                 setOnClickListener {
-                    val intent = Intent(this@MainActivity, HorarioActivity::class.java)
+                    val intent = Intent(this@MainActivity, CalendarioActivity::class.java)
                     startActivity(intent)
                 }
             }

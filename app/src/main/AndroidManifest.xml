@@ -30,6 +30,7 @@
         <activity android:name=".LembretesActivity" />
         <activity android:name=".NovoLembreteActivity" />
         <activity android:name=".HorarioActivity" />
+        <activity android:name=".CalendarioActivity" />
 
         <receiver android:name=".ReminderReceiver"
             android:enabled="true"
