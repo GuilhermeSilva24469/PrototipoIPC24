@@ -210,8 +210,9 @@ class NovoLembreteActivity : Activity() {
         val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
         if (isEditing) {
             val oldLembrete = intent.getStringExtra("lembrete")
-            if (oldLembrete != null) {
-                lembretes.remove(oldLembrete)
+            val oldCategoria = intent.getStringExtra("categoria")
+            if (oldLembrete != null && oldCategoria != null) {
+                lembretes.remove("$oldLembrete|$oldCategoria")
                 Log.d("NovoLembreteActivity", "Lembrete antigo removido: $oldLembrete")
             }
         }
