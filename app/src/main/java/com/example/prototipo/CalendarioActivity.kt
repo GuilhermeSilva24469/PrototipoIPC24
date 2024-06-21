@@ -136,4 +136,3 @@ class CalendarioActivity : Activity() {
         listView.adapter = adapter
     }
 }
-
