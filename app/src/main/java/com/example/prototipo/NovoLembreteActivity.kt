@@ -230,7 +230,6 @@ class NovoLembreteActivity : Activity() {
         })
         finish()
     }
-
     private fun scheduleNotification(title: String, message: String, dateTime: String) {
         val intent = Intent(this, ReminderReceiver::class.java).apply {
             action = "com.example.prototipo.ACTION_NOTIFY"

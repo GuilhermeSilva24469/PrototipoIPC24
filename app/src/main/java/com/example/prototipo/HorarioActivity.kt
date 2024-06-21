@@ -36,19 +36,6 @@ class HorarioActivity : Activity() {
         val typefaceBold = Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf")
         val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
 
-        val voltarTextView = TextView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-            text = "Voltar"
-            textSize = 18f
-            setPadding(16)
-            typeface = typefaceBold
-            setTextColor(ContextCompat.getColor(context, android.R.color.holo_blue_light))
-            setOnClickListener {
-                finish()
-            }
-        }
-        contentLayout.addView(voltarTextView)
-
         val titleTextView = TextView(this).apply {
             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
             text = "Horário Escolar - Engenharia Informática"
@@ -59,24 +46,33 @@ class HorarioActivity : Activity() {
         }
         contentLayout.addView(titleTextView)
 
-        // Mock schedule details
-        val scheduleDetails = listOf(
-            "Segunda-feira: Algoritmos - 09:00 - 11:00",
-            "Terça-feira: Estruturas de Dados - 11:00 - 13:00",
-            "Quarta-feira: Sistemas Operativos - 14:00 - 16:00",
-            "Quinta-feira: Redes de Computadores - 09:00 - 11:00",
-            "Sexta-feira: Inteligência Artificial - 11:00 - 13:00"
-        )
+        // Array com os dias da semana
+        val diasSemana = arrayOf("Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira")
 
-        scheduleDetails.forEach { detail ->
-            val scheduleTextView = TextView(this).apply {
+        // Criar TextViews para cada dia da semana com seu respectivo horário
+        diasSemana.forEach { dia ->
+            val horarioTextView = TextView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                text = detail
-                textSize = 18f
+                text = dia
+                textSize = 20f
                 setPadding(16, 8, 16, 8)
-                typeface = typefaceRegular
+                typeface = typefaceBold
+                setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
             }
-            contentLayout.addView(scheduleTextView)
+            contentLayout.addView(horarioTextView)
+
+            // Horários das aulas
+            val horarios = getHorariosPorDia(dia) // Função fictícia para obter os horários por dia
+            horarios.forEach { horario ->
+                val horarioDetailTextView = TextView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                    text = horario
+                    textSize = 18f
+                    setPadding(32, 8, 16, 8)
+                    typeface = typefaceRegular
+                }
+                contentLayout.addView(horarioDetailTextView)
+            }
         }
 
         val bottomNavigationView = BottomNavigationView(this).apply {
@@ -105,8 +101,7 @@ class HorarioActivity : Activity() {
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_horario -> {
-                    val intent = Intent(this@HorarioActivity, HorarioActivity::class.java)
-                    startActivity(intent)
+                    // Já estamos na tela de horário, nada a fazer
                     true
                 }
                 R.id.navigation_homepage -> {
@@ -129,5 +124,17 @@ class HorarioActivity : Activity() {
         layout.addView(bottomNavigationView)
 
         setContentView(layout)
+    }
+
+    // Função fictícia para obter os horários por dia da semana
+    private fun getHorariosPorDia(dia: String): List<String> {
+        return when (dia) {
+            "Segunda-feira" -> listOf("Algoritmos - 09:00 - 11:00")
+            "Terça-feira" -> listOf("Estruturas de Dados - 11:00 - 13:00")
+            "Quarta-feira" -> listOf("Sistemas Operativos - 14:00 - 16:00")
+            "Quinta-feira" -> listOf("Redes de Computadores - 09:00 - 11:00")
+            "Sexta-feira" -> listOf("Inteligência Artificial - 11:00 - 13:00")
+            else -> emptyList()
+        }
     }
 }

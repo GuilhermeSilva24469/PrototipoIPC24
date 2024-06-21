@@ -17,13 +17,10 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
+
 class CalendarioActivity : Activity() {
 
-    private val reminders = mapOf(
-        "2024-06-20" to listOf("Meeting at 10 AM", "Doctor appointment at 3 PM"),
-        "2024-06-21" to listOf("Lunch with Sarah at 1 PM"),
-        "2024-06-22" to listOf("Gym at 6 PM", "Dinner with John at 7 PM")
-    )
+    private val reminders = mutableMapOf<String, List<String>>() // Alterado para ser mutável
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,13 +62,15 @@ class CalendarioActivity : Activity() {
         // Set initial reminders for today's date
         val today = android.text.format.DateFormat.format("dd-MM-yyyy", calendarView.date).toString()
         selectedDateTextView.text = today
-        updateReminders(today, remindersListView)
+        loadReminders(today) // Carrega os lembretes para a data inicial
+        updateRemindersListView(today, remindersListView)
 
         // Set listener for date changes
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val selectedDate = String.format("%02d-%02d-%04d", dayOfMonth, month + 1, year)
             selectedDateTextView.text = selectedDate
-            updateReminders(selectedDate, remindersListView)
+            loadReminders(selectedDate) // Carrega os lembretes para a nova data selecionada
+            updateRemindersListView(selectedDate, remindersListView)
         }
 
         // Create BottomNavigationView
@@ -130,7 +129,25 @@ class CalendarioActivity : Activity() {
         setContentView(mainLayout)
     }
 
-    private fun updateReminders(date: String, listView: ListView) {
+    private fun loadReminders(date: String) {
+        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
+        val lembretes = sharedPreferences.getStringSet("lembretes", setOf()) ?: setOf()
+
+        // Limpa os lembretes existentes para essa data
+        reminders[date] = lembretes.filter { lembrete ->
+            val parts = lembrete.split("|")
+            val dataHora = parts[1]
+            dataHora.startsWith(date)
+        }.map { lembrete ->
+            val parts = lembrete.split("|")
+            val titulo = parts[0]
+            val dataHora = parts[1]
+            val volume = parts[2]
+            "$titulo - $dataHora - $volume"
+        }
+    }
+
+    private fun updateRemindersListView(date: String, listView: ListView) {
         val reminderList = reminders[date] ?: listOf("Não há lembretes para este dia.")
         val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, reminderList)
         listView.adapter = adapter
