@@ -17,7 +17,6 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
-
 class CalendarioActivity : Activity() {
 
     private val reminders = mutableMapOf<String, List<String>>() // Alterado para ser mutável
@@ -151,5 +150,18 @@ class CalendarioActivity : Activity() {
         val reminderList = reminders[date] ?: listOf("Não há lembretes para este dia.")
         val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, reminderList)
         listView.adapter = adapter
+    }
+
+    // Method to add a reminder
+    private fun addReminder(title: String, dateTime: String, volume: String) {
+        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf()) ?: mutableSetOf()
+
+        lembretes.add("$title|$dateTime|$volume")
+        editor.putStringSet("lembretes", lembretes)
+        editor.apply()
+
+
     }
 }

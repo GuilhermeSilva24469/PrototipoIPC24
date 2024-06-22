@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
@@ -52,22 +53,32 @@ class MainActivity : Activity() {
             Log.d("MainActivity", "onCreate: Tipografia carregada")
 
             val titleTextView = TextView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                id = View.generateViewId() // Gerar um ID para o título
+                layoutParams = RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.WRAP_CONTENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    // Define as regras de layout para alinhar o TextView no topo do RelativeLayout
+                    addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                    addRule(RelativeLayout.CENTER_HORIZONTAL)
+                    topMargin = 32
+                }
                 text = "ReminderApp"
-                textSize = 36f
+                textSize = 40f
                 setPadding(0, 0, 0, 32)
-                gravity = Gravity.CENTER_HORIZONTAL
                 setTextColor(ContextCompat.getColor(context, android.R.color.black))
                 typeface = typefaceBold
             }
-            layout.addView(titleTextView)
+            mainLayout.addView(titleTextView)
 
             Log.d("MainActivity", "onCreate: TextView de título criado")
 
             val calendarioButton = Button(this).apply {
+                id = View.generateViewId() // Gerar um ID para o botão
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
                 text = "Calendário"
-                setPadding(32)
+                textSize = 20f
+                setPadding(40)
                 typeface = typefaceRegular
                 setOnClickListener {
                     val intent = Intent(this@MainActivity, CalendarioActivity::class.java)
@@ -75,6 +86,22 @@ class MainActivity : Activity() {
                 }
             }
             layout.addView(calendarioButton)
+
+            // Adicionar ImageView
+            val imageView = ImageView(this).apply {
+                layoutParams = RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.WRAP_CONTENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    // Define as regras de layout para posicionar entre o título e o botão
+                    addRule(RelativeLayout.BELOW, titleTextView.id)
+                    addRule(RelativeLayout.ABOVE, calendarioButton.id)
+                    addRule(RelativeLayout.CENTER_HORIZONTAL)
+                    topMargin = 16 // Ajuste a margem superior conforme necessário
+                }
+                setImageResource(R.drawable.ic_icon_reminderapp) // Substitua 'ic_icon_reminderapp' pelo seu recurso de imagem
+            }
+            mainLayout.addView(imageView)
 
             Log.d("MainActivity", "onCreate: Botões criados")
 
@@ -109,8 +136,6 @@ class MainActivity : Activity() {
                         true
                     }
                     R.id.navigation_homepage -> {
-                        val intent = Intent(this@MainActivity, MainActivity::class.java)
-                        startActivity(intent)
                         true
                     }
                     R.id.navigation_lembretes -> {

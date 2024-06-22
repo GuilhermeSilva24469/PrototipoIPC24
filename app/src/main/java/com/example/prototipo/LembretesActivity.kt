@@ -10,16 +10,9 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.ScrollView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -164,16 +157,31 @@ class LembretesActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
-            if (requestCode == 1 || requestCode == 2) {
-                val categoria = data?.getStringExtra("categoria") ?: return
-                val lembrete = data.getStringExtra("lembrete") ?: return
+            val categoria = data?.getStringExtra("categoria") ?: return
+            val lembrete = data.getStringExtra("lembrete") ?: return
+
+            if (requestCode == 1) { // Adding new reminder
                 if (!lembretesMap.containsKey(categoria)) {
                     lembretesMap[categoria] = mutableListOf()
                 }
                 lembretesMap[categoria]?.add(lembrete)
-                saveLembretes()  // Salva os lembretes atualizados no SharedPreferences
-                refreshLembretes()
+            } else if (requestCode == 2) { // Editing existing reminder
+                val oldCategoria = data.getStringExtra("oldCategoria")
+                val oldLembrete = data.getStringExtra("oldLembrete")
+                if (oldCategoria != null && oldLembrete != null) {
+                    lembretesMap[oldCategoria]?.remove(oldLembrete)
+                    if (lembretesMap[oldCategoria]?.isEmpty() == true) {
+                        lembretesMap.remove(oldCategoria)
+                    }
+                }
+                if (!lembretesMap.containsKey(categoria)) {
+                    lembretesMap[categoria] = mutableListOf()
+                }
+                lembretesMap[categoria]?.add(lembrete)
             }
+
+            saveLembretes()  // Save the updated reminders to SharedPreferences
+            refreshLembretes() // Refresh the UI
         }
     }
 
@@ -187,13 +195,18 @@ class LembretesActivity : Activity() {
                 putExtra("categoria", categoria)
                 putExtra("lembrete", lembrete)
                 putExtra("isEditing", true)
+                putExtra("oldCategoria", categoria)
+                putExtra("oldLembrete", lembrete)
             }
             startActivityForResult(intent, 2)
         }
         dialogBuilder.setNegativeButton("Eliminar") { dialog, _ ->
             dialog.dismiss()
             lembretesMap[categoria]?.remove(lembrete)
-            saveLembretes()  // Salva os lembretes atualizados no SharedPreferences
+            if (lembretesMap[categoria]?.isEmpty() == true) {
+                lembretesMap.remove(categoria)
+            }
+            saveLembretes()  // Save the updated reminders to SharedPreferences
             refreshLembretes()
         }
         dialogBuilder.setNeutralButton("Cancelar") { dialog, _ ->
@@ -291,5 +304,4 @@ class LembretesActivity : Activity() {
 
         return lembretesMap
     }
-
 }
