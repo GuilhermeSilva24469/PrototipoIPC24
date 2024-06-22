@@ -1,3 +1,5 @@
+// Atualizar `CalendarioActivity`
+
 package com.example.prototipo
 
 import android.app.Activity
@@ -19,7 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class CalendarioActivity : Activity() {
 
-    private val reminders = mutableMapOf<String, List<String>>() // Alterado para ser mutável
+    private val reminders = mutableMapOf<String, MutableList<String>>() // Alterado para ser mutável
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,7 +130,7 @@ class CalendarioActivity : Activity() {
         setContentView(mainLayout)
     }
 
-    private fun loadReminders(date: String) {
+    private fun loadReminders(date: String, newReminder: String? = null) {
         val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
         val lembretes = sharedPreferences.getStringSet("lembretes", setOf()) ?: setOf()
 
@@ -143,6 +145,11 @@ class CalendarioActivity : Activity() {
             val dataHora = parts[1]
             val volume = parts[2]
             "$titulo - $dataHora - $volume"
+        }.toMutableList()
+
+        // Adiciona o novo lembrete, se houver
+        newReminder?.let {
+            reminders[date]?.add(it)
         }
     }
 
@@ -153,7 +160,7 @@ class CalendarioActivity : Activity() {
     }
 
     // Method to add a reminder
-    private fun addReminder(title: String, dateTime: String, volume: String) {
+    fun addReminder(title: String, dateTime: String, volume: String) {
         val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf()) ?: mutableSetOf()
@@ -162,6 +169,8 @@ class CalendarioActivity : Activity() {
         editor.putStringSet("lembretes", lembretes)
         editor.apply()
 
-
+        // Adicionar lembrete ao mapa interno
+        val date = dateTime.split(" ")[0]
+        loadReminders(date, "$title - $dateTime - $volume")
     }
 }
