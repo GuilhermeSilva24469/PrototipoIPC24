@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -230,6 +231,7 @@ class LembretesActivity : Activity() {
 
         lembretesMap.forEach { (categoria, lembretes) ->
             val categoriaTextView = TextView(this).apply {
+
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
                 text = categoria
                 textSize = 18f
@@ -245,10 +247,18 @@ class LembretesActivity : Activity() {
                     setPadding(16, 8, 16, 8)
                 }
 
-                val checkBox = CheckBox(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                val circleImageView = ImageView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(48.dpToPx(), 48.dpToPx()).apply {
+                        marginEnd = 16.dpToPx()
+                    }
+                    background = createCircleDrawable(false)
+                    isSelected = false
+                    setOnClickListener {
+                        isSelected = !isSelected
+                        background = createCircleDrawable(isSelected)
+                    }
                 }
-                lembreteLayout.addView(checkBox)
+                lembreteLayout.addView(circleImageView)
 
                 val lembreteTextView = TextView(this).apply {
                     layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
@@ -312,5 +322,17 @@ class LembretesActivity : Activity() {
         }
 
         return lembretesMap
+    }
+
+    private fun createCircleDrawable(isSelected: Boolean): GradientDrawable {
+        val drawable = GradientDrawable()
+        drawable.shape = GradientDrawable.OVAL
+        drawable.setColor(if (isSelected) ContextCompat.getColor(this, android.R.color.holo_purple) else ContextCompat.getColor(this, android.R.color.white))
+        drawable.setStroke(2.dpToPx(), ContextCompat.getColor(this, android.R.color.black))
+        return drawable
+    }
+
+    private fun Int.dpToPx(): Int {
+        return (this * resources.displayMetrics.density).toInt()
     }
 }
