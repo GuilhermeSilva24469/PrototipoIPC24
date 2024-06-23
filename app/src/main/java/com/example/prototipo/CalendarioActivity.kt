@@ -1,12 +1,9 @@
-// Atualizar `CalendarioActivity`
-
 package com.example.prototipo
 
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -74,6 +71,14 @@ class CalendarioActivity : Activity() {
             updateRemindersListView(selectedDate, remindersListView)
         }
 
+        // Handle incoming reminders from LembretesActivity
+        intent.getStringExtra("date")?.let { date ->
+            intent.getStringExtra("lembrete")?.let { lembrete ->
+                addReminder(date, lembrete)
+                updateRemindersListView(date, remindersListView)
+            }
+        }
+
         // Create BottomNavigationView
         val bottomNavigationView = BottomNavigationView(this).apply {
             id = View.generateViewId()
@@ -130,7 +135,7 @@ class CalendarioActivity : Activity() {
         setContentView(mainLayout)
     }
 
-    private fun loadReminders(date: String, newReminder: String? = null) {
+    private fun loadReminders(date: String) {
         val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
         val lembretes = sharedPreferences.getStringSet("lembretes", setOf()) ?: setOf()
 
@@ -146,11 +151,6 @@ class CalendarioActivity : Activity() {
             val volume = parts[2]
             "$titulo - $dataHora - $volume"
         }.toMutableList()
-
-        // Adiciona o novo lembrete, se houver
-        newReminder?.let {
-            reminders[date]?.add(it)
-        }
     }
 
     private fun updateRemindersListView(date: String, listView: ListView) {
@@ -159,18 +159,15 @@ class CalendarioActivity : Activity() {
         listView.adapter = adapter
     }
 
-    // Method to add a reminder
-    fun addReminder(title: String, dateTime: String, volume: String) {
+    private fun addReminder(date: String, reminder: String) {
         val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf()) ?: mutableSetOf()
+        val remindersSet = sharedPreferences.getStringSet("lembretes", mutableSetOf()) ?: mutableSetOf()
 
-        lembretes.add("$title|$dateTime|$volume")
-        editor.putStringSet("lembretes", lembretes)
+        remindersSet.add(reminder)
+        editor.putStringSet("lembretes", remindersSet)
         editor.apply()
 
-        // Adicionar lembrete ao mapa interno
-        val date = dateTime.split(" ")[0]
-        loadReminders(date, "$title - $dateTime - $volume")
+        loadReminders(date)
     }
 }

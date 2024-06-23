@@ -44,9 +44,7 @@ class LembretesActivity : Activity() {
         val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
 
         val voltarTextView = TextView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                marginEnd = 16
-            }
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
             text = "Voltar"
             textSize = 18f
             setPadding(16)
@@ -182,6 +180,15 @@ class LembretesActivity : Activity() {
 
             saveLembretes()  // Save the updated reminders to SharedPreferences
             refreshLembretes() // Refresh the UI
+
+            // Enviar lembrete para CalendarioActivity
+            val dateParts = lembrete.split(" - ")[1].split(" ")
+            val date = dateParts[0]
+            val intent = Intent(this, CalendarioActivity::class.java).apply {
+                putExtra("date", date)
+                putExtra("lembrete", lembrete)
+            }
+            startActivity(intent)
         }
     }
 
@@ -270,16 +277,12 @@ class LembretesActivity : Activity() {
                 val titulo = parts[0]
                 val dataHora = parts[1]
                 val volume = parts[2]
-                val categoria = entry.key
-                "$titulo|$dataHora|$volume|$categoria"
+                "${titulo}|${dataHora}|${volume}|${entry.key}"
             }
         }.toSet()
 
         editor.putStringSet("lembretes", lembretesSet)
         editor.apply()
-
-        // Exibir mensagem de sucesso
-        Toast.makeText(this, "Alterações guardadas com sucesso", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadLembretes(): Map<String, MutableList<String>> {

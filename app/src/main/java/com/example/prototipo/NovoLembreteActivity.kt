@@ -212,15 +212,12 @@ class NovoLembreteActivity : Activity() {
             val oldLembrete = intent.getStringExtra("lembrete")
             if (oldLembrete != null) {
                 lembretes.remove(oldLembrete)
-                Log.d("NovoLembreteActivity", "Lembrete antigo removido: $oldLembrete")
             }
         }
         lembretes.add("$titulo|$dataHora|$volume|$categoria")
-        Log.d("NovoLembreteActivity", "Lembrete adicionado: $titulo|$dataHora|$volume|$categoria")
 
         editor.putStringSet("lembretes", lembretes)
-        val commitResult = editor.commit()
-        Log.d("NovoLembreteActivity", "SharedPreferences commit result: $commitResult")
+        editor.apply()
 
         scheduleNotification(titulo, "Lembrete: $titulo", dataHora)
 
@@ -230,6 +227,7 @@ class NovoLembreteActivity : Activity() {
         })
         finish()
     }
+
     private fun scheduleNotification(title: String, message: String, dateTime: String) {
         val intent = Intent(this, ReminderReceiver::class.java).apply {
             action = "com.example.prototipo.ACTION_NOTIFY"
