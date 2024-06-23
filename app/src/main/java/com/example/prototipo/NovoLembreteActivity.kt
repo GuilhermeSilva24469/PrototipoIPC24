@@ -1,8 +1,7 @@
 package com.example.prototipo
 
-import android.app.Activity
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
+import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -12,20 +11,11 @@ import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.Spinner
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
-import java.util.Calendar
-import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Context
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 class NovoLembreteActivity : Activity() {
 
@@ -219,7 +209,7 @@ class NovoLembreteActivity : Activity() {
         editor.putStringSet("lembretes", lembretes)
         editor.apply()
 
-        scheduleNotification(titulo, "Lembrete: $titulo", dataHora)
+        scheduleNotification(titulo, "Lembrete: $titulo", dataHora, volume, categoria)
 
         setResult(Activity.RESULT_OK, Intent().apply {
             putExtra("categoria", categoria)
@@ -228,13 +218,12 @@ class NovoLembreteActivity : Activity() {
         finish()
     }
 
-    private fun scheduleNotification(title: String, message: String, dateTime: String) {
+    private fun scheduleNotification(title: String, message: String, dateTime: String, volume: String, category: String) {
         val intent = Intent(this, ReminderReceiver::class.java).apply {
             action = "com.example.prototipo.ACTION_NOTIFY"
             putExtra("title", title)
             putExtra("message", message)
         }
-
         val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -242,8 +231,16 @@ class NovoLembreteActivity : Activity() {
         val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         val date = dateFormat.parse(dateTime)
 
-        if (date != null) {
+        if (date != null && date.time > System.currentTimeMillis()) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, date.time, pendingIntent)
+        } else {
+            // Remove the reminder if the date has passed
+            val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+            lembretes.remove("$title|$dateTime|$volume|$category")
+            editor.putStringSet("lembretes", lembretes)
+            editor.apply()
         }
     }
 }

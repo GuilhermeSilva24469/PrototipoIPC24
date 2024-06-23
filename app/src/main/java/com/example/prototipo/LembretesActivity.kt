@@ -16,6 +16,8 @@ import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.text.SimpleDateFormat
+import java.util.*
 
 class LembretesActivity : Activity() {
 
@@ -201,7 +203,6 @@ class LembretesActivity : Activity() {
             val intent = Intent(this, NovoLembreteActivity::class.java).apply {
                 putExtra("categoria", categoria)
                 putExtra("lembrete", lembrete)
-                putExtra("isEditing", true)
                 putExtra("oldCategoria", categoria)
                 putExtra("oldLembrete", lembrete)
             }
@@ -290,6 +291,8 @@ class LembretesActivity : Activity() {
         val lembretes = sharedPreferences.getStringSet("lembretes", setOf()) ?: setOf()
 
         val lembretesMap = mutableMapOf<String, MutableList<String>>()
+        val currentTime = System.currentTimeMillis()
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
         lembretes.forEach { lembrete ->
             val parts = lembrete.split("|")
@@ -298,11 +301,14 @@ class LembretesActivity : Activity() {
             val volume = parts[2]
             val categoria = parts[3]
 
-            if (!lembretesMap.containsKey(categoria)) {
-                lembretesMap[categoria] = mutableListOf()
+            // Verificar se o lembrete já passou
+            val date = dateFormat.parse(dataHora)
+            if (date != null && date.time > currentTime) {
+                if (!lembretesMap.containsKey(categoria)) {
+                    lembretesMap[categoria] = mutableListOf()
+                }
+                lembretesMap[categoria]?.add("$titulo - $dataHora - $volume")
             }
-
-            lembretesMap[categoria]?.add("$titulo - $dataHora - $volume")
         }
 
         return lembretesMap

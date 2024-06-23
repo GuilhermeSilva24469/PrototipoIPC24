@@ -13,7 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 class ReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val notificationId = intent.getIntExtra("notificationId", 0)
+        val notificationId = System.currentTimeMillis().toInt()
         val title = intent.getStringExtra("title") ?: "Lembrete"
         val message = intent.getStringExtra("message") ?: "Você tem um lembrete!"
 
