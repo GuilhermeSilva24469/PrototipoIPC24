@@ -26,14 +26,14 @@ class MainActivity : Activity() {
         try {
             Log.d("MainActivity", "onCreate: Iniciando criação do layout principal")
 
-            // Create a RelativeLayout to hold everything
+
             val mainLayout = RelativeLayout(this).apply {
                 layoutParams = RelativeLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             }
 
             Log.d("MainActivity", "onCreate: RelativeLayout criado")
 
-            // Create a LinearLayout for the main content
+
             val layout = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT).apply {
@@ -93,19 +93,19 @@ class MainActivity : Activity() {
                     RelativeLayout.LayoutParams.WRAP_CONTENT,
                     RelativeLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    // Define as regras de layout para posicionar entre o título e o botão
+
                     addRule(RelativeLayout.BELOW, titleTextView.id)
                     addRule(RelativeLayout.ABOVE, calendarioButton.id)
                     addRule(RelativeLayout.CENTER_HORIZONTAL)
-                    topMargin = 16 // Ajuste a margem superior conforme necessário
+                    topMargin = 16
                 }
-                setImageResource(R.drawable.ic_icon_reminderapp) // Substitua 'ic_icon_reminderapp' pelo seu recurso de imagem
+                setImageResource(R.drawable.ic_icon_reminderapp)
             }
             mainLayout.addView(imageView)
 
             Log.d("MainActivity", "onCreate: Botões criados")
 
-            // Create BottomNavigationView programmatically
+
             val bottomNavigationView = BottomNavigationView(this).apply {
                 id = View.generateViewId()
                 layoutParams = RelativeLayout.LayoutParams(
@@ -149,10 +149,8 @@ class MainActivity : Activity() {
 
             Log.d("MainActivity", "onCreate: BottomNavigationView criado")
 
-            // Add BottomNavigationView to main layout
             mainLayout.addView(bottomNavigationView)
 
-            // Set the main layout as the content view
             setContentView(mainLayout)
 
             Log.d("MainActivity", "onCreate: Layout principal definido como conteúdo")

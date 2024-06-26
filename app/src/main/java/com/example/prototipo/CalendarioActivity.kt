@@ -18,7 +18,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class CalendarioActivity : Activity() {
 
-    private val reminders = mutableMapOf<String, MutableList<String>>() // Alterado para ser mutável
+    private val reminders = mutableMapOf<String, MutableList<String>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +26,7 @@ class CalendarioActivity : Activity() {
         val typefaceBold = Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf")
         val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
 
-        // Create main layout
+
         val mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
@@ -34,13 +34,13 @@ class CalendarioActivity : Activity() {
             setBackgroundColor(ContextCompat.getColor(context, android.R.color.white))
         }
 
-        // Create CalendarView
+
         val calendarView = CalendarView(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         }
         mainLayout.addView(calendarView)
 
-        // Create TextView for selected date
+
         val selectedDateTextView = TextView(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             textSize = 24f
@@ -49,7 +49,6 @@ class CalendarioActivity : Activity() {
         }
         mainLayout.addView(selectedDateTextView)
 
-        // Create ListView for reminders
         val remindersListView = ListView(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 0).apply {
                 weight = 1f
@@ -57,21 +56,18 @@ class CalendarioActivity : Activity() {
         }
         mainLayout.addView(remindersListView)
 
-        // Set initial reminders for today's date
         val today = android.text.format.DateFormat.format("dd-MM-yyyy", calendarView.date).toString()
         selectedDateTextView.text = today
-        loadReminders(today) // Carrega os lembretes para a data inicial
+        loadReminders(today)
         updateRemindersListView(today, remindersListView)
 
-        // Set listener for date changes
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val selectedDate = String.format("%02d-%02d-%04d", dayOfMonth, month + 1, year)
             selectedDateTextView.text = selectedDate
-            loadReminders(selectedDate) // Carrega os lembretes para a nova data selecionada
+            loadReminders(selectedDate)
             updateRemindersListView(selectedDate, remindersListView)
         }
 
-        // Handle incoming reminders from LembretesActivity
         intent.getStringExtra("date")?.let { date ->
             intent.getStringExtra("lembrete")?.let { lembrete ->
                 addReminder(date, lembrete)

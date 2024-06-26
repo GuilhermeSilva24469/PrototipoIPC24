@@ -96,13 +96,10 @@ class LembretesActivity : Activity() {
                 }
             }
 
-            saveLembretes()  // Save the updated reminders to SharedPreferences
-            refreshLembretes() // Refresh the UI
+            saveLembretes()
+            refreshLembretes()
         }
     }
-
-
-
 
     private fun showEditDeleteDialog(categoria: String, lembrete: String) {
         val dialogBuilder = AlertDialog.Builder(this)
@@ -110,10 +107,9 @@ class LembretesActivity : Activity() {
         dialogBuilder.setMessage("Escolha uma opção:")
         dialogBuilder.setPositiveButton("Editar") { dialog, _ ->
             dialog.dismiss()
-            val intent = Intent(this, NovoLembreteActivity::class.java).apply {
+            val intent = Intent(this, EditarLembreteActivity::class.java).apply {
                 putExtra("categoria", categoria)
                 putExtra("lembrete", lembrete)
-                putExtra("isEditing", true)
                 putExtra("oldCategoria", categoria)
                 putExtra("oldLembrete", lembrete)
             }
@@ -125,8 +121,8 @@ class LembretesActivity : Activity() {
             if (lembretesMap[categoria]?.isEmpty() == true) {
                 lembretesMap.remove(categoria)
             }
-            saveLembretes()  // Save the updated reminders to SharedPreferences
-            removeExpiredReminders()  // Remove expired reminders
+            saveLembretes()
+            removeExpiredReminders()
             refreshLembretes()
         }
         dialogBuilder.setNeutralButton("Cancelar") { dialog, _ ->
@@ -134,6 +130,7 @@ class LembretesActivity : Activity() {
         }
         val alertDialog = dialogBuilder.create()
         alertDialog.show()
+
     }
 
     private fun refreshLembretes() {
@@ -160,8 +157,8 @@ class LembretesActivity : Activity() {
                     try {
                         val dataHora = dateFormat.parse(dataHoraString)
                         if (dataHora != null && dataHora.time < System.currentTimeMillis()) {
-                            iterator.remove()  // Remove expired reminder from the list
-                            continue  // Skip adding expired reminder to UI
+                            iterator.remove()
+                            continue
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -211,7 +208,7 @@ class LembretesActivity : Activity() {
                     try {
                         val dataHora = dateFormat.parse(dataHoraString)
                         if (dataHora != null && dataHora.time < System.currentTimeMillis()) {
-                            reminderIterator.remove()  // Remove expired reminder from the list
+                            reminderIterator.remove()
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -219,10 +216,10 @@ class LembretesActivity : Activity() {
                 }
             }
             if (lembretes.isEmpty()) {
-                iterator.remove()  // Remove empty categories from the map
+                iterator.remove()
             }
         }
-        saveLembretes()  // Save the updated reminders to SharedPreferences
+        saveLembretes()
     }
 
     private fun saveLembretes() {
@@ -243,7 +240,6 @@ class LembretesActivity : Activity() {
         editor.putStringSet("lembretes", lembretesSet)
         editor.apply()
 
-        // Exibir mensagem de sucesso
         Toast.makeText(this, "Alterações guardadas com sucesso", Toast.LENGTH_SHORT).show()
     }
 
@@ -367,7 +363,6 @@ class LembretesActivity : Activity() {
                     true
                 }
                 R.id.navigation_lembretes -> {
-                    // Already on this activity
                     true
                 }
                 else -> false
