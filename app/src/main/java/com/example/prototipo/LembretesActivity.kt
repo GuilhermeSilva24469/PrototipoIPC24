@@ -7,7 +7,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -37,6 +36,241 @@ class LembretesActivity : Activity() {
         }
         setContentView(mainLayout)
 
+        configureTopBar(mainLayout)
+        configureScrollView(mainLayout)
+        configureBottomNavigationView(mainLayout)
+
+        val lembretes = loadLembretes()
+        lembretesMap.putAll(lembretes)
+        removeExpiredReminders()
+        refreshLembretes()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Reminder Channel"
+            val descriptionText = "Channel for Reminder Notifications"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("reminder_channel", name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun showSuccessMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            val categoria = data?.getStringExtra("categoria") ?: return
+            val lembrete = data.getStringExtra("lembrete") ?: return
+            val oldLembrete = data.getStringExtra("oldLembrete")
+            val oldCategoria = data.getStringExtra("oldCategoria")
+
+            when (requestCode) {
+                1 -> { // Adding new reminder
+                    if (!lembretesMap.containsKey(categoria)) {
+                        lembretesMap[categoria] = mutableListOf()
+                    }
+                    lembretesMap[categoria]?.add(lembrete)
+                    showSuccessMessage("Lembrete adicionado com sucesso")
+                }
+                2 -> { // Editing existing reminder
+                    if (oldCategoria != null && oldLembrete != null) {
+                        // Remove the old reminder if it exists
+                        lembretesMap[oldCategoria]?.remove(oldLembrete)
+                        if (lembretesMap[oldCategoria]?.isEmpty() == true) {
+                            lembretesMap.remove(oldCategoria)
+                        }
+                    }
+
+                    if (!lembretesMap.containsKey(categoria)) {
+                        lembretesMap[categoria] = mutableListOf()
+                    }
+                    lembretesMap[categoria]?.add(lembrete)
+                    showSuccessMessage("Lembrete editado com sucesso")
+                }
+            }
+
+            saveLembretes()  // Save the updated reminders to SharedPreferences
+            refreshLembretes() // Refresh the UI
+        }
+    }
+
+
+
+
+    private fun showEditDeleteDialog(categoria: String, lembrete: String) {
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setTitle("Opções de Lembrete")
+        dialogBuilder.setMessage("Escolha uma opção:")
+        dialogBuilder.setPositiveButton("Editar") { dialog, _ ->
+            dialog.dismiss()
+            val intent = Intent(this, NovoLembreteActivity::class.java).apply {
+                putExtra("categoria", categoria)
+                putExtra("lembrete", lembrete)
+                putExtra("isEditing", true)
+                putExtra("oldCategoria", categoria)
+                putExtra("oldLembrete", lembrete)
+            }
+            startActivityForResult(intent, 2)
+        }
+        dialogBuilder.setNegativeButton("Eliminar") { dialog, _ ->
+            dialog.dismiss()
+            lembretesMap[categoria]?.remove(lembrete)
+            if (lembretesMap[categoria]?.isEmpty() == true) {
+                lembretesMap.remove(categoria)
+            }
+            saveLembretes()  // Save the updated reminders to SharedPreferences
+            removeExpiredReminders()  // Remove expired reminders
+            refreshLembretes()
+        }
+        dialogBuilder.setNeutralButton("Cancelar") { dialog, _ ->
+            dialog.dismiss()
+        }
+        val alertDialog = dialogBuilder.create()
+        alertDialog.show()
+    }
+
+    private fun refreshLembretes() {
+        lembretesLayout.removeAllViews()
+        val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+
+        lembretesMap.forEach { (categoria, lembretes) ->
+            val categoriaTextView = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                text = categoria
+                textSize = 18f
+                setPadding(16, 16, 16, 8)
+                typeface = Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf")
+            }
+            lembretesLayout.addView(categoriaTextView)
+
+            val iterator = lembretes.iterator()
+            while (iterator.hasNext()) {
+                val lembrete = iterator.next()
+                val parts = lembrete.split(" - ")
+                if (parts.size >= 2) {
+                    val dataHoraString = parts[1]
+                    try {
+                        val dataHora = dateFormat.parse(dataHoraString)
+                        if (dataHora != null && dataHora.time < System.currentTimeMillis()) {
+                            iterator.remove()  // Remove expired reminder from the list
+                            continue  // Skip adding expired reminder to UI
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                val lembreteLayout = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                    setPadding(16, 8, 16, 8)
+                }
+
+                val checkBox = CheckBox(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                }
+                lembreteLayout.addView(checkBox)
+
+                val lembreteTextView = TextView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                        marginStart = 16
+                    }
+                    text = lembrete.replace(" - ", "\n")
+                    textSize = 16f
+                    typeface = typefaceRegular
+                    setOnClickListener { v ->
+                        showEditDeleteDialog(categoria, lembrete)
+                    }
+                }
+                lembreteLayout.addView(lembreteTextView)
+
+                lembretesLayout.addView(lembreteLayout)
+            }
+        }
+    }
+
+    private fun removeExpiredReminders() {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val iterator = lembretesMap.values.iterator()
+        while (iterator.hasNext()) {
+            val lembretes = iterator.next()
+            val reminderIterator = lembretes.iterator()
+            while (reminderIterator.hasNext()) {
+                val lembrete = reminderIterator.next()
+                val parts = lembrete.split(" - ")
+                if (parts.size >= 2) {
+                    val dataHoraString = parts[1]
+                    try {
+                        val dataHora = dateFormat.parse(dataHoraString)
+                        if (dataHora != null && dataHora.time < System.currentTimeMillis()) {
+                            reminderIterator.remove()  // Remove expired reminder from the list
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+            if (lembretes.isEmpty()) {
+                iterator.remove()  // Remove empty categories from the map
+            }
+        }
+        saveLembretes()  // Save the updated reminders to SharedPreferences
+    }
+
+    private fun saveLembretes() {
+        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        val lembretesSet = lembretesMap.flatMap { entry ->
+            entry.value.map { lembrete ->
+                val parts = lembrete.split(" - ")
+                val titulo = parts[0]
+                val dataHora = parts[1]
+                val volume = parts[2]
+                val categoria = entry.key
+                "$titulo|$dataHora|$volume|$categoria"
+            }
+        }.toSet()
+
+        editor.putStringSet("lembretes", lembretesSet)
+        editor.apply()
+
+        // Exibir mensagem de sucesso
+        Toast.makeText(this, "Alterações guardadas com sucesso", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadLembretes(): Map<String, MutableList<String>> {
+        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
+        val lembretes = sharedPreferences.getStringSet("lembretes", setOf()) ?: setOf()
+
+        val lembretesMap = mutableMapOf<String, MutableList<String>>()
+
+        lembretes.forEach { lembrete ->
+            val parts = lembrete.split("|")
+            val titulo = parts[0]
+            val dataHora = parts[1]
+            val volume = parts[2]
+            val categoria = parts[3]
+
+            if (!lembretesMap.containsKey(categoria)) {
+                lembretesMap[categoria] = mutableListOf()
+            }
+
+            lembretesMap[categoria]?.add("$titulo - $dataHora - $volume")
+        }
+
+        return lembretesMap
+    }
+
+    private fun configureTopBar(mainLayout: LinearLayout) {
         val topBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
@@ -44,10 +278,11 @@ class LembretesActivity : Activity() {
         }
 
         val typefaceBold = Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf")
-        val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
 
         val voltarTextView = TextView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                marginEnd = 16
+            }
             text = "Voltar"
             textSize = 18f
             setPadding(16)
@@ -69,6 +304,8 @@ class LembretesActivity : Activity() {
         }
         topBar.addView(textView)
 
+        val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
+
         val addButton = Button(this).apply {
             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
             text = "Adicionar"
@@ -82,7 +319,9 @@ class LembretesActivity : Activity() {
         topBar.addView(addButton)
 
         mainLayout.addView(topBar)
+    }
 
+    private fun configureScrollView(mainLayout: LinearLayout) {
         val scrollView = ScrollView(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 0).apply {
                 weight = 1f
@@ -96,13 +335,9 @@ class LembretesActivity : Activity() {
 
         scrollView.addView(lembretesLayout)
         mainLayout.addView(scrollView)
+    }
 
-        val lembretes = loadLembretes()
-        lembretesMap.putAll(lembretes)
-
-        refreshLembretes()
-
-        // Create BottomNavigationView programmatically
+    private fun configureBottomNavigationView(mainLayout: LinearLayout) {
         val bottomNavigationView = BottomNavigationView(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             setBackgroundResource(android.R.color.white)
@@ -140,199 +375,5 @@ class LembretesActivity : Activity() {
         }
 
         mainLayout.addView(bottomNavigationView)
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Reminder Channel"
-            val descriptionText = "Channel for Reminder Notifications"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel("reminder_channel", name, importance).apply {
-                description = descriptionText
-            }
-            val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK) {
-            val categoria = data?.getStringExtra("categoria") ?: return
-            val lembrete = data.getStringExtra("lembrete") ?: return
-
-            if (requestCode == 1) { // Adding new reminder
-                if (!lembretesMap.containsKey(categoria)) {
-                    lembretesMap[categoria] = mutableListOf()
-                }
-                lembretesMap[categoria]?.add(lembrete)
-            } else if (requestCode == 2) { // Editing existing reminder
-                val oldCategoria = data.getStringExtra("oldCategoria")
-                val oldLembrete = data.getStringExtra("oldLembrete")
-                if (oldCategoria != null && oldLembrete != null) {
-                    lembretesMap[oldCategoria]?.remove(oldLembrete)
-                    if (lembretesMap[oldCategoria]?.isEmpty() == true) {
-                        lembretesMap.remove(oldCategoria)
-                    }
-                }
-                if (!lembretesMap.containsKey(categoria)) {
-                    lembretesMap[categoria] = mutableListOf()
-                }
-                lembretesMap[categoria]?.add(lembrete)
-            }
-
-            saveLembretes()  // Save the updated reminders to SharedPreferences
-            refreshLembretes() // Refresh the UI
-
-            // Enviar lembrete para CalendarioActivity
-            val dateParts = lembrete.split(" - ")[1].split(" ")
-            val date = dateParts[0]
-            val intent = Intent(this, CalendarioActivity::class.java).apply {
-                putExtra("date", date)
-                putExtra("lembrete", lembrete)
-            }
-            startActivity(intent)
-        }
-    }
-
-    private fun showEditDeleteDialog(categoria: String, lembrete: String) {
-        val dialogBuilder = AlertDialog.Builder(this)
-        dialogBuilder.setTitle("Opções de Lembrete")
-        dialogBuilder.setMessage("Escolha uma opção:")
-        dialogBuilder.setPositiveButton("Editar") { dialog, _ ->
-            dialog.dismiss()
-            val intent = Intent(this, NovoLembreteActivity::class.java).apply {
-                putExtra("categoria", categoria)
-                putExtra("lembrete", lembrete)
-                putExtra("oldCategoria", categoria)
-                putExtra("oldLembrete", lembrete)
-            }
-            startActivityForResult(intent, 2)
-        }
-        dialogBuilder.setNegativeButton("Eliminar") { dialog, _ ->
-            dialog.dismiss()
-            lembretesMap[categoria]?.remove(lembrete)
-            if (lembretesMap[categoria]?.isEmpty() == true) {
-                lembretesMap.remove(categoria)
-            }
-            saveLembretes()  // Save the updated reminders to SharedPreferences
-            refreshLembretes()
-        }
-        dialogBuilder.setNeutralButton("Cancelar") { dialog, _ ->
-            dialog.dismiss()
-        }
-        val alertDialog = dialogBuilder.create()
-        alertDialog.show()
-    }
-
-    private fun refreshLembretes() {
-        lembretesLayout.removeAllViews()
-        val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
-
-        lembretesMap.forEach { (categoria, lembretes) ->
-            val categoriaTextView = TextView(this).apply {
-
-                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                text = categoria
-                textSize = 18f
-                setPadding(16, 16, 16, 8)
-                typeface = Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf")
-            }
-            lembretesLayout.addView(categoriaTextView)
-
-            lembretes.forEach { lembrete ->
-                val lembreteLayout = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                    setPadding(16, 8, 16, 8)
-                }
-
-                val circleImageView = ImageView(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(48.dpToPx(), 48.dpToPx()).apply {
-                        marginEnd = 16.dpToPx()
-                    }
-                    background = createCircleDrawable(false)
-                    isSelected = false
-                    setOnClickListener {
-                        isSelected = !isSelected
-                        background = createCircleDrawable(isSelected)
-                    }
-                }
-                lembreteLayout.addView(circleImageView)
-
-                val lembreteTextView = TextView(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
-                        marginStart = 16
-                    }
-                    text = lembrete.replace(" - ", "\n")
-                    textSize = 16f
-                    typeface = typefaceRegular
-                    setOnClickListener { v ->
-                        showEditDeleteDialog(categoria, lembrete)
-                    }
-                }
-                lembreteLayout.addView(lembreteTextView)
-
-                lembretesLayout.addView(lembreteLayout)
-            }
-        }
-    }
-
-    private fun saveLembretes() {
-        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-
-        val lembretesSet = lembretesMap.flatMap { entry ->
-            entry.value.map { lembrete ->
-                val parts = lembrete.split(" - ")
-                val titulo = parts[0]
-                val dataHora = parts[1]
-                val volume = parts[2]
-                "${titulo}|${dataHora}|${volume}|${entry.key}"
-            }
-        }.toSet()
-
-        editor.putStringSet("lembretes", lembretesSet)
-        editor.apply()
-    }
-
-    private fun loadLembretes(): Map<String, MutableList<String>> {
-        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
-        val lembretes = sharedPreferences.getStringSet("lembretes", setOf()) ?: setOf()
-
-        val lembretesMap = mutableMapOf<String, MutableList<String>>()
-        val currentTime = System.currentTimeMillis()
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-
-        lembretes.forEach { lembrete ->
-            val parts = lembrete.split("|")
-            val titulo = parts[0]
-            val dataHora = parts[1]
-            val volume = parts[2]
-            val categoria = parts[3]
-
-            // Verificar se o lembrete já passou
-            val date = dateFormat.parse(dataHora)
-            if (date != null && date.time > currentTime) {
-                if (!lembretesMap.containsKey(categoria)) {
-                    lembretesMap[categoria] = mutableListOf()
-                }
-                lembretesMap[categoria]?.add("$titulo - $dataHora - $volume")
-            }
-        }
-
-        return lembretesMap
-    }
-
-    private fun createCircleDrawable(isSelected: Boolean): GradientDrawable {
-        val drawable = GradientDrawable()
-        drawable.shape = GradientDrawable.OVAL
-        drawable.setColor(if (isSelected) ContextCompat.getColor(this, android.R.color.holo_purple) else ContextCompat.getColor(this, android.R.color.white))
-        drawable.setStroke(2.dpToPx(), ContextCompat.getColor(this, android.R.color.black))
-        return drawable
-    }
-
-    private fun Int.dpToPx(): Int {
-        return (this * resources.displayMetrics.density).toInt()
     }
 }
