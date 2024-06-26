@@ -12,7 +12,6 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -38,7 +37,6 @@ class EditarLembreteActivity : Activity() {
 
         configureTopBar(mainLayout)
         configureForm(mainLayout)
-        configureBottomNavigationView(mainLayout)
 
         oldCategoria = intent.getStringExtra("oldCategoria")
         oldLembrete = intent.getStringExtra("oldLembrete")
@@ -64,23 +62,10 @@ class EditarLembreteActivity : Activity() {
 
         val typefaceBold = Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf")
 
-        val voltarTextView = TextView(this).apply {
+        val textView = TextView(this).apply {
             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                 marginEnd = 16
             }
-            text = "Voltar"
-            textSize = 18f
-            setPadding(16)
-            typeface = typefaceBold
-            setTextColor(ContextCompat.getColor(context, android.R.color.holo_blue_light))
-            setOnClickListener {
-                finish()
-            }
-        }
-        topBar.addView(voltarTextView)
-
-        val textView = TextView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
             text = "Editar Lembrete"
             textSize = 22f
             setPadding(16)
@@ -155,7 +140,7 @@ class EditarLembreteActivity : Activity() {
             adapter = ArrayAdapter(
                 this@EditarLembreteActivity,
                 android.R.layout.simple_spinner_dropdown_item,
-                listOf("Tarefas da semana", "Compras", "Trabalho")
+                listOf("Tarefas da semana", "Tarefas do mês", "Trabalho", "Pessoal", "Estudo", "Outro")
             )
         }
         mainLayout.addView(categoriaSpinner)
@@ -232,44 +217,5 @@ class EditarLembreteActivity : Activity() {
             true
         )
         timePickerDialog.show()
-    }
-
-    private fun configureBottomNavigationView(mainLayout: LinearLayout) {
-        val bottomNavigationView = BottomNavigationView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-            setBackgroundResource(android.R.color.white)
-            itemIconTintList = ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
-            itemTextColor = ContextCompat.getColorStateList(context, R.color.bottom_nav_item_color)
-            menu.add(0, R.id.navigation_horario, 0, "Horário").apply {
-                icon = ContextCompat.getDrawable(context, R.drawable.ic_horario)
-            }
-            menu.add(0, R.id.navigation_homepage, 1, "Homepage").apply {
-                icon = ContextCompat.getDrawable(context, R.drawable.ic_homepage)
-            }
-            menu.add(0, R.id.navigation_lembretes, 2, "Lembretes").apply {
-                icon = ContextCompat.getDrawable(context, R.drawable.ic_lembretes)
-            }
-        }
-
-        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_horario -> {
-                    val intent = Intent(this@EditarLembreteActivity, HorarioActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.navigation_homepage -> {
-                    val intent = Intent(this@EditarLembreteActivity, MainActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.navigation_lembretes -> {
-                    true
-                }
-                else -> false
-            }
-        }
-
-        mainLayout.addView(bottomNavigationView)
     }
 }
