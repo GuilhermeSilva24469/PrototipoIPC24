@@ -74,12 +74,12 @@ class MainActivity : Activity() {
             Log.d("MainActivity", "onCreate: TextView de título criado")
 
             val calendarioButton = Button(this).apply {
-                id = View.generateViewId() // Gerar um ID para o botão
+                id = View.generateViewId()
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
                 text = "Calendário"
                 textSize = 20f
                 setPadding(40)
-                typeface = typefaceRegular
+                typeface = typefaceBold
                 setOnClickListener {
                     val intent = Intent(this@MainActivity, CalendarioActivity::class.java)
                     startActivity(intent)
@@ -87,7 +87,6 @@ class MainActivity : Activity() {
             }
             layout.addView(calendarioButton)
 
-            // Adicionar ImageView
             val imageView = ImageView(this).apply {
                 layoutParams = RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.WRAP_CONTENT,
@@ -104,7 +103,6 @@ class MainActivity : Activity() {
             mainLayout.addView(imageView)
 
             Log.d("MainActivity", "onCreate: Botões criados")
-
 
             val bottomNavigationView = BottomNavigationView(this).apply {
                 id = View.generateViewId()

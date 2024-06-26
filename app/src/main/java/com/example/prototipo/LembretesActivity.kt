@@ -92,7 +92,6 @@ class LembretesActivity : Activity() {
                         lembretesMap[categoria] = mutableListOf()
                     }
                     lembretesMap[categoria]?.add(lembrete)
-                    showSuccessMessage("Lembrete editado com sucesso")
                 }
             }
 
@@ -103,6 +102,7 @@ class LembretesActivity : Activity() {
 
     private fun showEditDeleteDialog(categoria: String, lembrete: String) {
         val dialogBuilder = AlertDialog.Builder(this)
+
         dialogBuilder.setTitle("Opções de Lembrete")
         dialogBuilder.setMessage("Escolha uma opção:")
         dialogBuilder.setPositiveButton("Editar") { dialog, _ ->
@@ -295,6 +295,7 @@ class LembretesActivity : Activity() {
             text = "Os meus lembretes"
             textSize = 22f
             setPadding(16)
+            setTextColor(ContextCompat.getColor(context, android.R.color.black))
             typeface = typefaceBold
             gravity = Gravity.CENTER
         }

@@ -156,10 +156,7 @@ class NovoLembreteActivity : Activity() {
         val categoria = intent.getStringExtra("categoria")
         val lembrete = intent.getStringExtra("lembrete")
 
-        // Use the existing information to pre-fill the fields if editing
         if (isEditing && categoria != null && lembrete != null) {
-            // Logic to pre-fill the fields with the existing reminder's information
-            // Assuming lembrete is formatted as "title - dateTime - volume"
             val lembreteParts = lembrete.split(" - ")
             if (lembreteParts.size == 3) {
                 titleEditText.setText(lembreteParts[0])
@@ -234,7 +231,6 @@ class NovoLembreteActivity : Activity() {
         if (date != null && date.time > System.currentTimeMillis()) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, date.time, pendingIntent)
         } else {
-            // Remove the reminder if the date has passed
             val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
             val editor = sharedPreferences.edit()
             val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
