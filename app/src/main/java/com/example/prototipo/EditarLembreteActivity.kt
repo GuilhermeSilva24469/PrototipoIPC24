@@ -1,9 +1,12 @@
 package com.example.prototipo
 
 import android.app.Activity
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.InputType
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -11,6 +14,7 @@ import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.util.Calendar
 
 class EditarLembreteActivity : Activity() {
 
@@ -57,6 +61,15 @@ class EditarLembreteActivity : Activity() {
     }
 
     private fun configureTopBar(mainLayout: LinearLayout) {
+
+        val mainLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            setPadding(32, 32, 32, 32)
+            setBackgroundColor(ContextCompat.getColor(context, android.R.color.white))
+        }
+        setContentView(mainLayout)
+
         val topBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
@@ -79,38 +92,73 @@ class EditarLembreteActivity : Activity() {
         mainLayout.addView(topBar)
     }
 
+
     private fun configureForm(mainLayout: LinearLayout) {
-        categoriaEditText = EditText(this).apply {
-            hint = "Categoria"
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                setMargins(0, 0, 0, 16)
-            }
-        }
-        mainLayout.addView(categoriaEditText)
 
-        lembreteEditText = EditText(this).apply {
-            hint = "Lembrete"
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                setMargins(0, 0, 0, 16)
-            }
-        }
-        mainLayout.addView(lembreteEditText)
+        val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
 
-        dateTimeEditText = EditText(this).apply {
-            hint = "Data e Hora (dd/MM/yyyy HH:mm)"
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                setMargins(0, 0, 0, 16)
+        val titleEditText = EditText(this).apply {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+            hint = "Título"
+            inputType = InputType.TYPE_CLASS_TEXT
+            setPadding(16)
+            typeface = typefaceRegular
+            setBackgroundResource(android.R.drawable.edit_text)
+        }
+        mainLayout.addView(titleEditText)
+
+        val dateTimeEditText = EditText(this).apply {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+            hint = "Dia e hora"
+            inputType = InputType.TYPE_NULL
+            setPadding(16)
+            typeface = typefaceRegular
+            setBackgroundResource(android.R.drawable.edit_text)
+            setOnClickListener {
+                showDateTimePickerDialog(this)
             }
         }
         mainLayout.addView(dateTimeEditText)
 
-        volumeEditText = EditText(this).apply {
-            hint = "Volume"
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                setMargins(0, 0, 0, 16)
+        val volumeTextView = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+            text = "Volume"
+            setPadding(0, 16, 0, 8)
+            typeface = typefaceRegular
+        }
+        mainLayout.addView(volumeTextView)
+
+        val volumeSpinner = Spinner(this).apply {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+            adapter = ArrayAdapter.createFromResource(
+                context,
+                R.array.volume_array,
+                android.R.layout.simple_spinner_item
+            ).apply {
+                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             }
         }
-        mainLayout.addView(volumeEditText)
+        mainLayout.addView(volumeSpinner)
+
+        val categoryTextView = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+            text = "Categoria"
+            setPadding(0, 16, 0, 8)
+            typeface = typefaceRegular
+        }
+        mainLayout.addView(categoryTextView)
+
+        val categorySpinner = Spinner(this).apply {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+            adapter = ArrayAdapter.createFromResource(
+                context,
+                R.array.categoria_array,
+                android.R.layout.simple_spinner_item
+            ).apply {
+                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        }
+        mainLayout.addView(categorySpinner)
 
         val buttonLayout = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
@@ -120,7 +168,7 @@ class EditarLembreteActivity : Activity() {
             gravity = Gravity.CENTER_HORIZONTAL
             weightSum = 2f
         }
-        layout.addView(buttonLayout)
+        mainLayout.addView(buttonLayout)
 
         val saveButton = Button(this).apply {
             text = "Guardar"
@@ -140,7 +188,7 @@ class EditarLembreteActivity : Activity() {
         }
         mainLayout.addView(saveButton)
 
-        val typefaceRegular = Typeface.createFromAsset(assets, "fonts/SF-Pro-Display-Medium.otf")
+
 
         val cancelButton = Button(this).apply {
             text= "Cancelar"
@@ -154,6 +202,25 @@ class EditarLembreteActivity : Activity() {
             }
         }
         buttonLayout.addView(cancelButton)
+    }
+
+    private fun showDateTimePickerDialog(editText: EditText) {
+        val cal = Calendar.getInstance()
+        val year = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH)
+        val day = cal.get(Calendar.DAY_OF_MONTH)
+        val hour = cal.get(Calendar.HOUR_OF_DAY)
+        val minute = cal.get(Calendar.MINUTE)
+
+        val datePickerDialog = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
+            val timePickerDialog = TimePickerDialog(this, { _, selectedHour, selectedMinute ->
+                val selectedDateTime = String.format("%02d/%02d/%04d %02d:%02d",
+                    selectedDay, selectedMonth + 1, selectedYear, selectedHour, selectedMinute)
+                editText.setText(selectedDateTime)
+            }, hour, minute, true)
+            timePickerDialog.show()
+        }, year, month, day)
+        datePickerDialog.show()
     }
 
     private fun configureBottomNavigationView(mainLayout: LinearLayout) {
