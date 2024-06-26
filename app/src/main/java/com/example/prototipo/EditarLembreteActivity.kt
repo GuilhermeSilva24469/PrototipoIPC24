@@ -13,7 +13,7 @@ import androidx.core.view.setPadding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class EditarLembreteActivity : Activity() {
-//aaaaaa
+
     private lateinit var categoriaEditText: EditText
     private lateinit var lembreteEditText: EditText
     private lateinit var dateTimeEditText: EditText

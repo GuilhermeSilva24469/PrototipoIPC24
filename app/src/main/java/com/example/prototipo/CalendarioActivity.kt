@@ -132,20 +132,15 @@ class CalendarioActivity : Activity() {
     }
 
     private fun loadReminders(date: String) {
-        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
-        val lembretes = sharedPreferences.getStringSet("lembretes", setOf()) ?: setOf()
+        val lembretesMap = loadLembretesFromFile()
 
         // Limpa os lembretes existentes para essa data
-        reminders[date] = lembretes.filter { lembrete ->
-            val parts = lembrete.split("|")
-            val dataHora = parts[1]
-            dataHora.startsWith(date)
-        }.map { lembrete ->
-            val parts = lembrete.split("|")
-            val titulo = parts[0]
-            val dataHora = parts[1]
-            val volume = parts[2]
-            "$titulo - $dataHora - $volume"
+        reminders[date] = lembretesMap.flatMap { entry ->
+            entry.value.filter { lembrete ->
+                val parts = lembrete.split(" - ")
+                val dataHora = parts[1]
+                dataHora.startsWith(date)
+            }
         }.toMutableList()
     }
 
@@ -165,5 +160,31 @@ class CalendarioActivity : Activity() {
         editor.apply()
 
         loadReminders(date)
+    }
+
+    private fun loadLembretesFromFile(): Map<String, MutableList<String>> {
+        val fileName = "lembretes.txt"
+        val lembretesMap = mutableMapOf<String, MutableList<String>>()
+
+        try {
+            val fileInputStream = openFileInput(fileName)
+            fileInputStream.bufferedReader().useLines { lines ->
+                lines.forEach { line ->
+                    val parts = line.split("|")
+                    if (parts.size >= 2) {
+                        val categoria = parts[0]
+                        val lembrete = parts[1]
+                        if (!lembretesMap.containsKey(categoria)) {
+                            lembretesMap[categoria] = mutableListOf()
+                        }
+                        lembretesMap[categoria]?.add(lembrete)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return lembretesMap
     }
 }
