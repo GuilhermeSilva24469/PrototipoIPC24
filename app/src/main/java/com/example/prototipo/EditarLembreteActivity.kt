@@ -59,7 +59,7 @@ class EditarLembreteActivity : Activity() {
             volumeEditText.setText(lembreteParts[2])
         }
     }
-
+aaaaaaaaaaaa
     private fun configureTopBar(mainLayout: LinearLayout) {
 
         val mainLayout = LinearLayout(this).apply {
