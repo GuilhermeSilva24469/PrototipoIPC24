@@ -1,8 +1,8 @@
 package com.example.prototipo
 
-import android.annotation.SuppressLint
-import android.app.*
-import android.content.Context
+import android.app.Activity
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -12,16 +12,26 @@ import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Spinner
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
+import java.util.Calendar
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 class NovoLembreteActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN)
 
         val layout = LinearLayout(this).apply {
@@ -153,61 +163,66 @@ class NovoLembreteActivity : Activity() {
         }
         buttonLayout.addView(cancelButton)
 
-        if (isEditing) {
-            val lembrete = intent.getStringExtra("lembrete")
-            lembrete?.split("|")?.let {
-                titleEditText.setText(it[0])
-                dateTimeEditText.setText(it[1])
-                volumeSpinner.setSelection(resources.getStringArray(R.array.volume_array).indexOf(it[2]))
-                categorySpinner.setSelection(resources.getStringArray(R.array.categoria_array).indexOf(it[3]))
+        val categoria = intent.getStringExtra("categoria")
+        val lembrete = intent.getStringExtra("lembrete")
+
+        // Use the existing information to pre-fill the fields if editing
+        if (isEditing && categoria != null && lembrete != null) {
+            // Logic to pre-fill the fields with the existing reminder's information
+            // Assuming lembrete is formatted as "title - dateTime - volume"
+            val lembreteParts = lembrete.split(" - ")
+            if (lembreteParts.size == 3) {
+                titleEditText.setText(lembreteParts[0])
+                dateTimeEditText.setText(lembreteParts[1])
+                val volumeAdapter = volumeSpinner.adapter as ArrayAdapter<String>
+                val volumePosition = volumeAdapter.getPosition(lembreteParts[2])
+                volumeSpinner.setSelection(volumePosition)
+                val categoriaAdapter = categorySpinner.adapter as ArrayAdapter<String>
+                val categoriaPosition = categoriaAdapter.getPosition(categoria)
+                categorySpinner.setSelection(categoriaPosition)
             }
         }
     }
 
     private fun showDateTimePickerDialog(editText: EditText) {
-        val calendar = Calendar.getInstance()
-        val datePickerDialog = DatePickerDialog(
-            this,
-            { _, year, monthOfYear, dayOfMonth ->
-                val timePickerDialog = TimePickerDialog(
-                    this,
-                    { _, hourOfDay, minute ->
-                        calendar.set(year, monthOfYear, dayOfMonth, hourOfDay, minute)
-                        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-                        editText.setText(sdf.format(calendar.time))
-                    },
-                    calendar.get(Calendar.HOUR_OF_DAY),
-                    calendar.get(Calendar.MINUTE),
-                    true
-                )
-                timePickerDialog.show()
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
+        val cal = Calendar.getInstance()
+        val year = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH)
+        val day = cal.get(Calendar.DAY_OF_MONTH)
+        val hour = cal.get(Calendar.HOUR_OF_DAY)
+        val minute = cal.get(Calendar.MINUTE)
+
+        val datePickerDialog = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
+            val timePickerDialog = TimePickerDialog(this, { _, selectedHour, selectedMinute ->
+                val selectedDateTime = String.format("%02d/%02d/%04d %02d:%02d",
+                    selectedDay, selectedMonth + 1, selectedYear, selectedHour, selectedMinute)
+                editText.setText(selectedDateTime)
+            }, hour, minute, true)
+            timePickerDialog.show()
+        }, year, month, day)
         datePickerDialog.show()
     }
 
     private fun guardarLembrete(titulo: String, dataHora: String, volume: String, categoria: String, isEditing: Boolean) {
-        val sharedPreferences = getSharedPreferences("LembretesApp", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf()) ?: mutableSetOf()
 
+        val lembretes = sharedPreferences.getStringSet("lembretes", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
         if (isEditing) {
             val oldLembrete = intent.getStringExtra("lembrete")
             if (oldLembrete != null) {
                 lembretes.remove(oldLembrete)
+                Log.d("NovoLembreteActivity", "Lembrete antigo removido: $oldLembrete")
             }
         }
-
-        val novoLembrete = "$titulo|$dataHora|$volume|$categoria"
-        lembretes.add(novoLembrete)
+        lembretes.add("$titulo|$dataHora|$volume|$categoria")
+        Log.d("NovoLembreteActivity", "Lembrete adicionado: $titulo|$dataHora|$volume|$categoria")
 
         editor.putStringSet("lembretes", lembretes)
-        editor.apply()
+        val commitResult = editor.commit()
+        Log.d("NovoLembreteActivity", "SharedPreferences commit result: $commitResult")
 
-        scheduleNotification(titulo, "Lembrete: $titulo", dataHora, volume, categoria)
+        scheduleNotification(titulo, "Lembrete: $titulo", dataHora)
 
         setResult(Activity.RESULT_OK, Intent().apply {
             putExtra("categoria", categoria)
@@ -216,44 +231,22 @@ class NovoLembreteActivity : Activity() {
         finish()
     }
 
-
-    @SuppressLint("UnspecifiedImmutableFlag")
-    private fun scheduleNotification(title: String, message: String, dateTime: String, volume: String, categoria: String) {
-        val notificationIntent = Intent(this, ReminderReceiver::class.java).apply {
+    private fun scheduleNotification(title: String, message: String, dateTime: String) {
+        val intent = Intent(this, ReminderReceiver::class.java).apply {
             action = "com.example.prototipo.ACTION_NOTIFY"
             putExtra("title", title)
             putExtra("message", message)
-            putExtra("volume", volume)
-            putExtra("categoria", categoria)
         }
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            notificationIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        val dateTimeFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        val date = dateTimeFormat.parse(dateTime)
-        date?.let {
-            val triggerTime = it.time
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val date = dateFormat.parse(dateTime)
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            } else {
-                alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            }
+        if (date != null) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, date.time, pendingIntent)
         }
     }
 }
