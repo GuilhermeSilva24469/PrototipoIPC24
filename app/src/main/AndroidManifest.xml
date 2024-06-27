@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.prototipo">
 
-    <!-- Permissões necessárias -->
+    <!-- Necessary permissions -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Updated permission for sending notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:allowBackup="true"
@@ -18,7 +20,7 @@
         android:theme="@style/Theme.Prototipo"
         tools:targetApi="31">
 
-        <!-- Atividades -->
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -29,33 +31,29 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".LembretesActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".NovoLembreteActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".EditarLembreteActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".HorarioActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".CalendarioActivity"
-            android:exported="true"/>
 
-        <!-- Receiver para notificações e eventos de inicialização -->
+        <!-- Other Activities -->
+        <activity android:name=".LembretesActivity" android:exported="true" />
+        <activity android:name=".NovoLembreteActivity" android:exported="true" />
+        <activity android:name=".EditarLembreteActivity" android:exported="true" />
+        <activity android:name=".HorarioActivity" android:exported="true" />
+        <activity android:name=".CalendarioActivity" android:exported="true" />
+
+        <!-- Receiver for notifications and boot events -->
         <receiver
-            android:name=".ReminderReceiver"
+            android:name="com.example.projeto.ui.ReminderReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="com.example.prototipo.ACTION_NOTIFY"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.example.prototipo.ACTION_NOTIFY" />
             </intent-filter>
         </receiver>
 
+        <!-- Additional receiver for stopping alarm sound -->
+        <receiver
+            android:name="com.example.projeto.ui.StopAlarmReceiver"
+            android:enabled="true"
+            android:exported="true"/>
     </application>
-
 </manifest>

@@ -1,4 +1,4 @@
-package com.example.prototipo
+package com.example.projeto.ui
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -6,51 +6,40 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
+import com.example.prototipo.MainActivity
+import com.example.prototipo.R
+
 
 class ReminderReceiver : BroadcastReceiver() {
-
     override fun onReceive(context: Context, intent: Intent) {
-        val notificationId = System.currentTimeMillis().toInt()
-        val title = intent.getStringExtra("title") ?: "Lembrete"
-        val message = intent.getStringExtra("message") ?: "Você tem um lembrete!"
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val channelId = "reminder_channel"
-        val channelName = "Reminder Notifications"
-
-        // Cria o canal de notificação para Android O e superior
+        // Create a notification channel if on Android Oreo or higher
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(channelId, channelName, importance).apply {
-                description = "Canal para notificações de lembretes"
-                enableLights(true)
-                lightColor = Color.RED
-                enableVibration(true)
-            }
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val channel = NotificationChannel("reminder_channel", "Reminder Notifications", NotificationManager.IMPORTANCE_HIGH)
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Cria a intenção para abrir a atividade principal ao clicar na notificação
-        val notificationIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
+        // Start the alarm sound
+        `MediaPlayerSingleton`.start(context, R.raw.alarm_sound)
+
+        // Intent to stop the alarm sound
+        val stopIntent = Intent(context, StopAlarmReceiver::class.java)
+        val stopPendingIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val notificationIntent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        // Constrói a notificação
-        val notificationBuilder = NotificationCompat.Builder(context, channelId).apply {
-            setSmallIcon(R.drawable.ic_notification)
-            setContentTitle(title)
-            setContentText(message)
-            setPriority(NotificationCompat.PRIORITY_HIGH)
-            setContentIntent(pendingIntent)
-            setAutoCancel(true)
-        }
+        val notification = NotificationCompat.Builder(context, "reminder_channel")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Lembrete")
+            .setContentText("Hora do seu lembrete.")
+            .setContentIntent(pendingIntent)
+            .addAction(R.drawable.ic_stop, "Parar", stopPendingIntent)  // Add stop action
+            .setAutoCancel(true)
+            .build()
 
-        // Envia a notificação
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(notificationId, notificationBuilder.build())
+        notificationManager.notify(0, notification)
     }
 }
