@@ -67,11 +67,10 @@ class EditarLembreteActivity : Activity() {
                 marginEnd = 16
             }
             text = "Editar Lembrete"
-            textSize = 28f
-            setPadding(0, 0, 0, 32)
-            gravity = Gravity.CENTER_HORIZONTAL
-            setTextColor(ContextCompat.getColor(context, android.R.color.black))
+            textSize = 22f
+            setPadding(16)
             typeface = typefaceBold
+            gravity = Gravity.CENTER
         }
         topBar.addView(textView)
 
@@ -155,7 +154,6 @@ class EditarLembreteActivity : Activity() {
 
         val saveButton = Button(this).apply {
             text = "GUARDAR"
-            typeface = typefaceRegular
             layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply {
                 setMargins(0, 0, 8, 0)
             }
@@ -176,7 +174,6 @@ class EditarLembreteActivity : Activity() {
 
         val cancelButton = Button(this).apply {
             text = "CANCELAR"
-            typeface = typefaceRegular
             layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply {
                 setMargins(8, 0, 0, 0)
             }
