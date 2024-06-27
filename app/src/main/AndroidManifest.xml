@@ -29,14 +29,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LembretesActivity" />
-        <activity android:name=".NovoLembreteActivity" />
-        <activity android:name=".EditarLembreteActivity" />
-        <activity android:name=".HorarioActivity" />
-        <activity android:name=".CalendarioActivity" />
+        <activity
+            android:name=".LembretesActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".NovoLembreteActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".EditarLembreteActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".HorarioActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".CalendarioActivity"
+            android:exported="true"/>
 
         <!-- Receiver para notificações e eventos de inicialização -->
-        <receiver android:name=".ReminderReceiver"
+        <receiver
+            android:name=".ReminderReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

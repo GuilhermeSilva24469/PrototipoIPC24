@@ -100,6 +100,7 @@ class LembretesActivity : Activity() {
         }
     }
 
+
     private fun showEditDeleteDialog(categoria: String, lembrete: String) {
         val dialogBuilder = AlertDialog.Builder(this)
 
@@ -240,8 +241,9 @@ class LembretesActivity : Activity() {
         editor.putStringSet("lembretes", lembretesSet)
         editor.apply()
 
-        Toast.makeText(this, "Alterações guardadas com sucesso", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Lembretes salvos com sucesso", Toast.LENGTH_SHORT).show()
     }
+
 
     private fun loadLembretes(): Map<String, MutableList<String>> {
         val sharedPreferences = getSharedPreferences("LembretesApp", MODE_PRIVATE)
