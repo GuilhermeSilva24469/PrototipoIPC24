@@ -227,7 +227,7 @@ class HorarioActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle("Editar Evento")
             .setView(dialogLayout)
-            .setPositiveButton("Salvar") { _, _ ->
+            .setPositiveButton("Guardar") { _, _ ->
                 val newEventText = eventEditText.text.toString()
                 if (newEventText.isNotBlank()) {
                     scheduleMap[day]?.apply {
@@ -240,7 +240,7 @@ class HorarioActivity : Activity() {
                     )
                 }
             }
-            .setNeutralButton("Excluir") { _, _ ->
+            .setNeutralButton("Remover") { _, _ ->
                 scheduleMap[day]?.remove(event)
                 updateSchedule(
                     Typeface.createFromAsset(assets, "fonts/SF-Pro-Text-Bold.otf"),
