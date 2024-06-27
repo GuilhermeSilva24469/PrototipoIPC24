@@ -1,8 +1,11 @@
 package com.example.prototipo
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -14,11 +17,16 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : Activity() {
+
+    companion object {
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,13 +34,16 @@ class MainActivity : Activity() {
         try {
             Log.d("MainActivity", "onCreate: Iniciando criação do layout principal")
 
+            // Solicitar permissão de notificação para Android 13+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestNotificationPermission()
+            }
 
             val mainLayout = RelativeLayout(this).apply {
                 layoutParams = RelativeLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             }
 
             Log.d("MainActivity", "onCreate: RelativeLayout criado")
-
 
             val layout = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -73,6 +84,20 @@ class MainActivity : Activity() {
 
             Log.d("MainActivity", "onCreate: TextView de título criado")
 
+            val imageView = ImageView(this).apply {
+                id = View.generateViewId()
+                layoutParams = RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.WRAP_CONTENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    addRule(RelativeLayout.BELOW, titleTextView.id)
+                    addRule(RelativeLayout.CENTER_HORIZONTAL)
+                    topMargin = 16
+                }
+                setImageResource(R.drawable.ic_icon_reminderapp)
+            }
+            mainLayout.addView(imageView)
+
             val calendarioButton = Button(this).apply {
                 id = View.generateViewId()
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
@@ -86,21 +111,6 @@ class MainActivity : Activity() {
                 }
             }
             layout.addView(calendarioButton)
-
-            val imageView = ImageView(this).apply {
-                layoutParams = RelativeLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.WRAP_CONTENT,
-                    RelativeLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-
-                    addRule(RelativeLayout.BELOW, titleTextView.id)
-                    addRule(RelativeLayout.ABOVE, calendarioButton.id)
-                    addRule(RelativeLayout.CENTER_HORIZONTAL)
-                    topMargin = 16
-                }
-                setImageResource(R.drawable.ic_icon_reminderapp)
-            }
-            mainLayout.addView(imageView)
 
             Log.d("MainActivity", "onCreate: Botões criados")
 
@@ -154,6 +164,25 @@ class MainActivity : Activity() {
             Log.d("MainActivity", "onCreate: Layout principal definido como conteúdo")
         } catch (e: Exception) {
             Log.e("MainActivity", "Error in onCreate", e)
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST_CODE)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissão concedida
+                Log.d("MainActivity", "Permissão de notificação concedida")
+            } else {
+                // Permissão negada
+                Log.d("MainActivity", "Permissão de notificação negada")
+            }
         }
     }
 }
